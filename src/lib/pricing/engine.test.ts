@@ -17,6 +17,8 @@ describe("pricing engine", () => {
     expect(result.realPriceCtKwh).toBeCloseTo(28.88, 2);
     expect(result.breakdown.variableNetFeeCtKwh).toBeCloseTo(5.53, 2);
     expect(result.breakdown.taxMultiplier).toBe(1.19);
+    expect(result.breakdown.subtotalNetCtKwh).toBeCloseTo(24.266, 3);
+    expect(result.breakdown.vatCtKwh).toBeCloseTo(4.6105, 4);
   });
 
   it("reduces the blended real price for module 2 when part of the load is controllable", () => {

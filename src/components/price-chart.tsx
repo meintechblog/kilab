@@ -33,15 +33,20 @@ export function PriceChart({
   selectedScenarioId,
   compareScenarioIds,
   availableUntil,
+  fixedPriceCtKwh,
+  fixedPriceLabel,
 }: {
   rows: DashboardChartRow[];
   scenarioOptions: ScenarioOption[];
   selectedScenarioId: ScenarioId;
   compareScenarioIds: ScenarioId[];
   availableUntil: string | null;
+  fixedPriceCtKwh: number;
+  fixedPriceLabel: string;
 }) {
   const selectedScenario = scenarioOptions.find((scenario) => scenario.id === selectedScenarioId);
   const visibleCompareIds = compareScenarioIds.filter((scenarioId) => scenarioId !== selectedScenarioId);
+  const chartData = rows.map((row) => ({ ...row, fixedPriceCtKwh }));
 
   return (
     <div className="rounded-[2rem] border border-white/70 bg-white/90 p-6 shadow-[0_24px_80px_rgba(14,35,21,0.08)] backdrop-blur">
@@ -50,7 +55,7 @@ export function PriceChart({
           <p className="text-xs uppercase tracking-[0.3em] text-emerald-800/70">Chart</p>
           <h2 className="mt-2 text-2xl font-semibold text-zinc-950">7 Tage Rueckblick plus verfuegbare Zukunft</h2>
           <p className="mt-3 max-w-3xl text-sm leading-6 text-zinc-600">
-            Gruen zeigt den Boersenpreis, Bernstein den Endkundenpreis des aktiven Szenarios. Weitere Szenarien lassen sich direkt im Chart vergleichen.
+            Gruen zeigt den Boersenpreis, Bernstein den aktiven Realpreis. Die gestrichelte rote Linie markiert deinen aktuellen Fixpreis als Referenz.
           </p>
         </div>
         <div className="rounded-[1.25rem] border border-zinc-200/80 bg-zinc-50/90 px-4 py-3 text-sm text-zinc-600">
@@ -60,7 +65,7 @@ export function PriceChart({
       </div>
       <div className="h-[460px] w-full">
         <ResponsiveContainer minHeight={340}>
-          <LineChart data={rows} margin={{ top: 10, right: 24, bottom: 10, left: 0 }}>
+          <LineChart data={chartData} margin={{ top: 10, right: 24, bottom: 10, left: 0 }}>
             <CartesianGrid stroke="rgba(15,59,45,0.08)" strokeDasharray="3 6" />
             <XAxis
               dataKey="timestamp"
@@ -101,6 +106,15 @@ export function PriceChart({
               strokeWidth={2}
               dot={false}
               connectNulls
+            />
+            <Line
+              type="monotone"
+              dataKey="fixedPriceCtKwh"
+              name={fixedPriceLabel}
+              stroke="#dc2626"
+              strokeDasharray="8 6"
+              strokeWidth={2}
+              dot={false}
             />
             <Line
               type="monotone"

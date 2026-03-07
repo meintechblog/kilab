@@ -41,8 +41,8 @@ export function calculateScenarioQuarterHourPrice({
     statutoryAddersCtKwh.offshore +
     statutoryAddersCtKwh.electricityTax +
     statutoryAddersCtKwh.concession;
-
-  const realPriceCtKwh = Number((subtotalNetCtKwh * VAT_MULTIPLIER).toFixed(4));
+  const vatCtKwh = Number((subtotalNetCtKwh * (VAT_MULTIPLIER - 1)).toFixed(4));
+  const realPriceCtKwh = Number((subtotalNetCtKwh + vatCtKwh).toFixed(4));
 
   return {
     realPriceCtKwh,
@@ -55,6 +55,8 @@ export function calculateScenarioQuarterHourPrice({
       offshoreCtKwh: statutoryAddersCtKwh.offshore,
       electricityTaxCtKwh: statutoryAddersCtKwh.electricityTax,
       concessionCtKwh: statutoryAddersCtKwh.concession,
+      subtotalNetCtKwh: Number(subtotalNetCtKwh.toFixed(4)),
+      vatCtKwh,
       taxMultiplier: VAT_MULTIPLIER,
     } satisfies QuarterHourBreakdown,
   };

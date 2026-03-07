@@ -1,6 +1,6 @@
 import { scenarioPresets } from "./config";
 import { calculateMonthlyEstimate, calculateScenarioQuarterHourPrice, getScenarioFixedMonthlyCostEur } from "./engine";
-import type { PricingScenario, ScenarioId } from "./types";
+import type { PricingScenario, QuarterHourBreakdown, ScenarioId } from "./types";
 
 export type ScenarioChartRow = {
   timestamp: string;
@@ -22,6 +22,7 @@ export type ScenarioSummary = {
   label: string;
   description: string;
   currentRealPriceCtKwh: number | null;
+  currentBreakdown: QuarterHourBreakdown | null;
   fixedMonthlyCostEur: number;
   variableMonthlyCostEur: number;
   projectedMonthlyCostEur: number;
@@ -29,6 +30,21 @@ export type ScenarioSummary = {
   controllableSharePercent: number;
   meteringLabel: string;
   networkMode: PricingScenario["networkMode"];
+  monthlyBreakdown: {
+    estimatedEnergyKwh: number;
+    variableCostEur: number;
+    fixedCostEur: number;
+  };
+};
+
+export type FixedPriceReference = {
+  label: string;
+  fixedPriceCtKwh: number;
+  currentPriceCtKwh: number;
+  projectedMonthlyCostEur: number;
+  estimatedEnergyKwh: number;
+  note: string;
+  chartSeries: Array<number | null>;
 };
 
 export function buildScenarioChartRows(
@@ -116,15 +132,17 @@ export function buildScenarioSummaries({
   profileShares: number[];
   spotSeriesCtKwh: Array<number | null>;
 }): ScenarioSummary[] {
+  const estimatedEnergyKwh = Number((profileShares.reduce((sum, share) => sum + share, 0) * annualConsumptionKwh).toFixed(2));
+
   return scenarioPresets.map((scenario) => {
-    const currentRealPriceCtKwh =
+    const currentQuarter =
       currentSpotCtKwh === null
         ? null
         : calculateScenarioQuarterHourPrice({
             scenario,
             spotCtKwh: currentSpotCtKwh,
             timestamp: currentTimestamp,
-          }).realPriceCtKwh;
+          });
 
     const monthlyEstimate = calculateProjectedMonthlyEstimate({
       annualConsumptionKwh,
@@ -137,7 +155,8 @@ export function buildScenarioSummaries({
       id: scenario.id,
       label: scenario.label,
       description: scenario.description,
-      currentRealPriceCtKwh,
+      currentRealPriceCtKwh: currentQuarter?.realPriceCtKwh ?? null,
+      currentBreakdown: currentQuarter?.breakdown ?? null,
       fixedMonthlyCostEur: monthlyEstimate.fixedCostEur,
       variableMonthlyCostEur: monthlyEstimate.variableCostEur,
       projectedMonthlyCostEur: monthlyEstimate.totalCostEur,
@@ -145,8 +164,38 @@ export function buildScenarioSummaries({
       controllableSharePercent: scenario.controllableSharePercent,
       meteringLabel: getMeteringLabel(scenario),
       networkMode: scenario.networkMode,
+      monthlyBreakdown: {
+        estimatedEnergyKwh,
+        variableCostEur: monthlyEstimate.variableCostEur,
+        fixedCostEur: monthlyEstimate.fixedCostEur,
+      },
     };
   });
+}
+
+export function calculateFixedPriceReference({
+  annualConsumptionKwh,
+  fixedPriceCtKwh,
+  profileShares,
+  chartRows,
+}: {
+  annualConsumptionKwh: number;
+  fixedPriceCtKwh: number;
+  profileShares: number[];
+  chartRows: ScenarioChartRow[];
+}): FixedPriceReference {
+  const estimatedEnergyKwh = Number((profileShares.reduce((sum, share) => sum + share, 0) * annualConsumptionKwh).toFixed(2));
+  const projectedMonthlyCostEur = Number(((estimatedEnergyKwh * fixedPriceCtKwh) / 100).toFixed(2));
+
+  return {
+    label: `Fixpreis ${fixedPriceCtKwh.toFixed(0)} ct/kWh`,
+    fixedPriceCtKwh,
+    currentPriceCtKwh: fixedPriceCtKwh,
+    projectedMonthlyCostEur,
+    estimatedEnergyKwh,
+    note: "Vergleich auf Arbeitspreisbasis ohne zusaetzlichen Grundpreis, weil dazu noch kein Vertragswert hinterlegt ist.",
+    chartSeries: chartRows.map(() => fixedPriceCtKwh),
+  };
 }
 
 function getMeteringLabel(scenario: PricingScenario) {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { DEFAULT_ANNUAL_CONSUMPTION_KWH, scenarioPresets } from "./config";
-import { buildScenarioChartRows, buildScenarioSummaries, calculateProjectedMonthlyEstimate } from "./dashboard";
+import { buildScenarioChartRows, buildScenarioSummaries, calculateFixedPriceReference, calculateProjectedMonthlyEstimate } from "./dashboard";
 
 const standard = scenarioPresets.find((scenario) => scenario.id === "standard_mme")!;
 
@@ -38,10 +38,35 @@ describe("pricing dashboard helpers", () => {
       currentRealPriceCtKwh: expect.closeTo(28.88, 2),
       fixedMonthlyCostEur: expect.closeTo(13.16, 2),
       projectedMonthlyCostEur: expect.closeTo(1232.08, 2),
+      currentBreakdown: {
+        subtotalNetCtKwh: expect.closeTo(24.266, 3),
+        vatCtKwh: expect.closeTo(4.6105, 4),
+      },
+      monthlyBreakdown: {
+        estimatedEnergyKwh: expect.closeTo(3500, 8),
+        variableCostEur: expect.closeTo(1218.92, 2),
+      },
     });
     expect(summaries.find((scenario) => scenario.id === "module2_blended")!.currentRealPriceCtKwh).toBeLessThan(
       summaries[0].currentRealPriceCtKwh!,
     );
+  });
+
+
+  it("builds a fixed-price reference for chart and monthly comparison", () => {
+    const fixed = calculateFixedPriceReference({
+      annualConsumptionKwh: DEFAULT_ANNUAL_CONSUMPTION_KWH,
+      fixedPriceCtKwh: 25,
+      profileShares: [0.25, 0.25, 0.5],
+      chartRows: [
+        { timestamp: "2026-03-07T08:00:00.000Z", dayAheadCtKwh: 10, intradayCtKwh: 11, realPriceByScenario: { standard_mme: 28.88, smart_meter_imsys: 28.88, module2_blended: 27.49, module3_blended: 28.88 } },
+        { timestamp: "2026-03-07T08:15:00.000Z", dayAheadCtKwh: null, intradayCtKwh: 12, realPriceByScenario: { standard_mme: null, smart_meter_imsys: null, module2_blended: null, module3_blended: null } },
+      ],
+    });
+
+    expect(fixed.currentPriceCtKwh).toBe(25);
+    expect(fixed.projectedMonthlyCostEur).toBeCloseTo(875, 8);
+    expect(fixed.chartSeries).toEqual([25, 25]);
   });
 
   it("normalizes monthly coverage against the month share, not the full year", () => {

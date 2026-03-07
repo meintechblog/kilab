@@ -3,10 +3,11 @@ import { fromZonedTime, toZonedTime } from "date-fns-tz";
 import {
   DEFAULT_ANNUAL_CONSUMPTION_KWH,
   DEFAULT_SCENARIO_ID,
+  FIXED_PRICE_REFERENCE_CT_KWH,
   PRICING_SOURCE_VERSION,
   scenarioPresets,
 } from "../pricing/config";
-import { buildScenarioChartRows, buildScenarioSummaries } from "../pricing/dashboard";
+import { buildScenarioChartRows, buildScenarioSummaries, calculateFixedPriceReference, type FixedPriceReference, type ScenarioSummary } from "../pricing/dashboard";
 import { getMonthProfileShares } from "../pricing/load-profile";
 import type { ScenarioId } from "../pricing/types";
 
@@ -21,6 +22,23 @@ export type DashboardChartRow = {
   dayAheadCtKwh: number | null;
   intradayCtKwh: number | null;
   realPriceByScenario: Record<ScenarioId, number | null>;
+};
+
+export type DashboardData = {
+  generatedAt: string;
+  chartRows: DashboardChartRow[];
+  currentDayAhead: DashboardPoint | null;
+  currentIntraday: DashboardPoint | null;
+  lastSync: SyncRow | null;
+  availableUntil: string | null;
+  locationLabel: string;
+  householdProfileLabel: string;
+  annualConsumptionKwh: number;
+  defaultScenarioId: ScenarioId;
+  pricingSourceVersion: string;
+  scenarioOptions: Array<{ id: ScenarioId; label: string; description: string }>;
+  scenarioSummaries: ScenarioSummary[];
+  fixedPriceReference: Omit<FixedPriceReference, "chartSeries">;
 };
 
 type RawRow = {
@@ -111,7 +129,7 @@ export function buildMonthlySpotSeries({
   return series;
 }
 
-export async function getDashboardData(now = new Date(), timezone = "Europe/Berlin") {
+export async function getDashboardData(now = new Date(), timezone = "Europe/Berlin"): Promise<DashboardData> {
   const { query } = await import("../db");
   const zonedNow = toZonedTime(now, timezone);
   const chartWindowStart = fromZonedTime(subDays(zonedNow, 7), timezone).toISOString();
@@ -175,6 +193,12 @@ export async function getDashboardData(now = new Date(), timezone = "Europe/Berl
     profileShares,
     spotSeriesCtKwh: monthSpotSeries,
   });
+  const fixedPriceReferenceRaw = calculateFixedPriceReference({
+    annualConsumptionKwh: DEFAULT_ANNUAL_CONSUMPTION_KWH,
+    fixedPriceCtKwh: FIXED_PRICE_REFERENCE_CT_KWH,
+    profileShares,
+    chartRows,
+  });
 
   return {
     generatedAt: now.toISOString(),
@@ -190,6 +214,14 @@ export async function getDashboardData(now = new Date(), timezone = "Europe/Berl
     pricingSourceVersion: PRICING_SOURCE_VERSION,
     scenarioOptions: scenarioPresets.map(({ id, label, description }) => ({ id, label, description })),
     scenarioSummaries,
+    fixedPriceReference: {
+      label: fixedPriceReferenceRaw.label,
+      fixedPriceCtKwh: fixedPriceReferenceRaw.fixedPriceCtKwh,
+      currentPriceCtKwh: fixedPriceReferenceRaw.currentPriceCtKwh,
+      projectedMonthlyCostEur: fixedPriceReferenceRaw.projectedMonthlyCostEur,
+      estimatedEnergyKwh: fixedPriceReferenceRaw.estimatedEnergyKwh,
+      note: fixedPriceReferenceRaw.note,
+    },
   };
 }
 

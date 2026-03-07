@@ -32,5 +32,7 @@ export type QuarterHourBreakdown = {
   offshoreCtKwh: number;
   electricityTaxCtKwh: number;
   concessionCtKwh: number;
+  subtotalNetCtKwh: number;
+  vatCtKwh: number;
   taxMultiplier: number;
 };
