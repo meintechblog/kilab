@@ -218,6 +218,8 @@ export async function getDashboardData(now = new Date(), timezone = "Europe/Berl
       label: fixedPriceReferenceRaw.label,
       fixedPriceCtKwh: fixedPriceReferenceRaw.fixedPriceCtKwh,
       currentPriceCtKwh: fixedPriceReferenceRaw.currentPriceCtKwh,
+      energyOnlyMonthlyCostEur: fixedPriceReferenceRaw.energyOnlyMonthlyCostEur,
+      monthlyBaseEur: fixedPriceReferenceRaw.monthlyBaseEur,
       projectedMonthlyCostEur: fixedPriceReferenceRaw.projectedMonthlyCostEur,
       estimatedEnergyKwh: fixedPriceReferenceRaw.estimatedEnergyKwh,
       note: fixedPriceReferenceRaw.note,

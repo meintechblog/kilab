@@ -65,7 +65,9 @@ describe("pricing dashboard helpers", () => {
     });
 
     expect(fixed.currentPriceCtKwh).toBe(25);
-    expect(fixed.projectedMonthlyCostEur).toBeCloseTo(875, 8);
+    expect(fixed.energyOnlyMonthlyCostEur).toBeCloseTo(875, 8);
+    expect(fixed.monthlyBaseEur).toBe(12);
+    expect(fixed.projectedMonthlyCostEur).toBeCloseTo(887, 8);
     expect(fixed.chartSeries).toEqual([25, 25]);
   });
 

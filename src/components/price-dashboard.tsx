@@ -28,6 +28,7 @@ export function PriceDashboard({ dashboard }: { dashboard: DashboardData }) {
             <p className="text-xs uppercase tracking-[0.25em] text-rose-900/70">Dein aktueller Vertrag</p>
             <p className="mt-2 text-3xl font-semibold">{formatCt(dashboard.fixedPriceReference.currentPriceCtKwh)}</p>
             <p className="mt-2 leading-6">{dashboard.fixedPriceReference.note}</p>
+            <p className="mt-2 text-xs text-rose-900/70">Arbeitspreis + Grundpreisannahme sind separat unten aufgeschluesselt.</p>
           </div>
         </div>
       </article>
@@ -37,7 +38,7 @@ export function PriceDashboard({ dashboard }: { dashboard: DashboardData }) {
         <MetricCard label={`Realpreis ${selectedScenario.label}`} value={formatCt(selectedScenario?.currentRealPriceCtKwh ?? null)} detail={selectedScenario?.description ?? "-"} tone="text-amber-950" />
         <MetricCard label="Fixpreis jetzt" value={formatCt(dashboard.fixedPriceReference.currentPriceCtKwh)} detail="Feste Referenz fuer deinen aktuellen Tarif" tone="text-rose-950" />
         <MetricCard label="Monat Flex hochgerechnet" value={formatEur(selectedScenario?.projectedMonthlyCostEur ?? null)} detail={`${Math.round((selectedScenario?.coverageRatio ?? 0) * 100)} % des Monatsprofils mit Day-Ahead-Daten belegt`} tone="text-zinc-950" />
-        <MetricCard label="Monat Fixpreis" value={formatEur(dashboard.fixedPriceReference.projectedMonthlyCostEur)} detail={`${dashboard.fixedPriceReference.estimatedEnergyKwh.toFixed(1)} kWh fuer den laufenden Monat`} tone="text-rose-950" />
+        <MetricCard label="Monat Fixpreis" value={formatEur(dashboard.fixedPriceReference.projectedMonthlyCostEur)} detail={`${dashboard.fixedPriceReference.energyOnlyMonthlyCostEur.toFixed(2)} EUR Arbeitspreis + ${dashboard.fixedPriceReference.monthlyBaseEur.toFixed(2)} EUR Grundpreis`} tone="text-rose-950" />
       </section>
 
       <section className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
@@ -118,10 +119,12 @@ export function PriceDashboard({ dashboard }: { dashboard: DashboardData }) {
             ["Flex variabel", selectedScenario.monthlyBreakdown.variableCostEur, "EUR"],
             ["Flex fix", selectedScenario.monthlyBreakdown.fixedCostEur, "EUR"],
             ["Flex gesamt", selectedScenario.projectedMonthlyCostEur, "EUR", true],
+            ["Fix Arbeitspreis", dashboard.fixedPriceReference.energyOnlyMonthlyCostEur, "EUR"],
+            ["Fix Grundpreis (angenommen)", dashboard.fixedPriceReference.monthlyBaseEur, "EUR"],
             [dashboard.fixedPriceReference.label, dashboard.fixedPriceReference.projectedMonthlyCostEur, "EUR", true],
             ["Differenz Flex vs. Fix", selectedScenario.projectedMonthlyCostEur - dashboard.fixedPriceReference.projectedMonthlyCostEur, "EUR"],
           ]}
-          footer={`Monatsabdeckung aktuell ${Math.round(selectedScenario.coverageRatio * 100)} %. Der Fixpreisvergleich nutzt nur den bekannten Arbeitspreis ohne zusaetzlichen Grundpreis.`}
+          footer={`Monatsabdeckung aktuell ${Math.round(selectedScenario.coverageRatio * 100)} %. Der Fixpreisvergleich nutzt 25 ct/kWh Arbeitspreis plus angenommene 12 EUR Grundpreis pro Monat.`}
         />
       </section>
 
@@ -156,7 +159,7 @@ export function PriceDashboard({ dashboard }: { dashboard: DashboardData }) {
           Der Flex-Realpreis basiert auf dem Day-Ahead-Viertelstundenpreis plus lokalen Preisbestandteilen fuer Schwäbisch Hall. Die Monatskosten sind eine Hochrechnung ueber das BDEW-H0-Profil eines 3-Personen-Hauses und werden mit jeder neuen Day-Ahead-Verfuegbarkeit nachgezogen.
         </p>
         <p className="mt-3">
-          Interner Pricing-Stand: <span className="font-medium text-zinc-900">{dashboard.pricingSourceVersion}</span>. Der Fixpreisvergleich nutzt aktuell nur deinen bekannten Arbeitspreis von {formatCt(dashboard.fixedPriceReference.currentPriceCtKwh)}; einen separaten Grundpreis kann ich spaeter zusaetzlich einbauen, sobald du ihn hast.
+          Interner Pricing-Stand: <span className="font-medium text-zinc-900">{dashboard.pricingSourceVersion}</span>. Der Fixpreisvergleich nutzt aktuell deinen bekannten Arbeitspreis von {formatCt(dashboard.fixedPriceReference.currentPriceCtKwh)} plus einen angenommenen Grundpreis von {formatEur(dashboard.fixedPriceReference.monthlyBaseEur)} pro Monat.
         </p>
       </article>
     </section>

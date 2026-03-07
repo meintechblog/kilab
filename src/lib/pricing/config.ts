@@ -4,6 +4,7 @@ export const PRICING_SOURCE_VERSION = "2026-03-07-sha-tibber-v1";
 export const DEFAULT_SCENARIO_ID: ScenarioId = "standard_mme";
 export const DEFAULT_ANNUAL_CONSUMPTION_KWH = 3500;
 export const FIXED_PRICE_REFERENCE_CT_KWH = 25;
+export const FIXED_PRICE_REFERENCE_MONTHLY_BASE_EUR = 12;
 export const MUNICIPALITY_KONZESSIONSABGABE_CT_KWH = 1.59;
 export const VAT_MULTIPLIER = 1.19;
 

@@ -1,4 +1,4 @@
-import { scenarioPresets } from "./config";
+import { FIXED_PRICE_REFERENCE_MONTHLY_BASE_EUR, scenarioPresets } from "./config";
 import { calculateMonthlyEstimate, calculateScenarioQuarterHourPrice, getScenarioFixedMonthlyCostEur } from "./engine";
 import type { PricingScenario, QuarterHourBreakdown, ScenarioId } from "./types";
 
@@ -41,6 +41,8 @@ export type FixedPriceReference = {
   label: string;
   fixedPriceCtKwh: number;
   currentPriceCtKwh: number;
+  energyOnlyMonthlyCostEur: number;
+  monthlyBaseEur: number;
   projectedMonthlyCostEur: number;
   estimatedEnergyKwh: number;
   note: string;
@@ -185,15 +187,19 @@ export function calculateFixedPriceReference({
   chartRows: ScenarioChartRow[];
 }): FixedPriceReference {
   const estimatedEnergyKwh = Number((profileShares.reduce((sum, share) => sum + share, 0) * annualConsumptionKwh).toFixed(2));
-  const projectedMonthlyCostEur = Number(((estimatedEnergyKwh * fixedPriceCtKwh) / 100).toFixed(2));
+  const energyOnlyMonthlyCostEur = Number(((estimatedEnergyKwh * fixedPriceCtKwh) / 100).toFixed(2));
+  const monthlyBaseEur = FIXED_PRICE_REFERENCE_MONTHLY_BASE_EUR;
+  const projectedMonthlyCostEur = Number((energyOnlyMonthlyCostEur + monthlyBaseEur).toFixed(2));
 
   return {
     label: `Fixpreis ${fixedPriceCtKwh.toFixed(0)} ct/kWh`,
     fixedPriceCtKwh,
     currentPriceCtKwh: fixedPriceCtKwh,
+    energyOnlyMonthlyCostEur,
+    monthlyBaseEur,
     projectedMonthlyCostEur,
     estimatedEnergyKwh,
-    note: "Vergleich auf Arbeitspreisbasis ohne zusaetzlichen Grundpreis, weil dazu noch kein Vertragswert hinterlegt ist.",
+    note: "Vergleich mit 25 ct/kWh Arbeitspreis plus angenommenem Grundpreis von 12 EUR/Monat.",
     chartSeries: chartRows.map(() => fixedPriceCtKwh),
   };
 }
