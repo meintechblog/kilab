@@ -1,0 +1,162 @@
+import { scenarioPresets } from "./config";
+import { calculateMonthlyEstimate, calculateScenarioQuarterHourPrice, getScenarioFixedMonthlyCostEur } from "./engine";
+import type { PricingScenario, ScenarioId } from "./types";
+
+export type ScenarioChartRow = {
+  timestamp: string;
+  dayAheadCtKwh: number | null;
+  intradayCtKwh: number | null;
+  realPriceByScenario: Record<ScenarioId, number | null>;
+};
+
+export type ProjectedMonthlyEstimate = {
+  variableCostEur: number;
+  fixedCostEur: number;
+  totalCostEur: number;
+  coverageRatio: number;
+  annualConsumptionKwh: number;
+};
+
+export type ScenarioSummary = {
+  id: ScenarioId;
+  label: string;
+  description: string;
+  currentRealPriceCtKwh: number | null;
+  fixedMonthlyCostEur: number;
+  variableMonthlyCostEur: number;
+  projectedMonthlyCostEur: number;
+  coverageRatio: number;
+  controllableSharePercent: number;
+  meteringLabel: string;
+  networkMode: PricingScenario["networkMode"];
+};
+
+export function buildScenarioChartRows(
+  rows: Array<{ timestamp: string; dayAheadCtKwh: number | null; intradayCtKwh: number | null }>,
+): ScenarioChartRow[] {
+  return rows.map((row) => ({
+    ...row,
+    realPriceByScenario: Object.fromEntries(
+      scenarioPresets.map((scenario) => [
+        scenario.id,
+        row.dayAheadCtKwh === null
+          ? null
+          : calculateScenarioQuarterHourPrice({
+              scenario,
+              spotCtKwh: row.dayAheadCtKwh,
+              timestamp: row.timestamp,
+            }).realPriceCtKwh,
+      ]),
+    ) as Record<ScenarioId, number | null>,
+  }));
+}
+
+export function calculateProjectedMonthlyEstimate({
+  annualConsumptionKwh,
+  scenario,
+  spotSeriesCtKwh,
+  profileShares,
+}: {
+  annualConsumptionKwh: number;
+  scenario: PricingScenario;
+  spotSeriesCtKwh: Array<number | null>;
+  profileShares: number[];
+}): ProjectedMonthlyEstimate {
+  const coveredRows = spotSeriesCtKwh
+    .map((spotPriceCtKwh, index) => ({ spotPriceCtKwh, share: profileShares[index] ?? 0, index }))
+    .filter((row): row is { spotPriceCtKwh: number; share: number; index: number } => row.spotPriceCtKwh !== null);
+
+  const coveredShare = coveredRows.reduce((sum, row) => sum + row.share, 0);
+  const totalMonthShare = profileShares.reduce((sum, share) => sum + share, 0);
+
+  if (coveredShare <= 0 || totalMonthShare <= 0) {
+    const fixedCostEur = getScenarioFixedMonthlyCostEur(scenario);
+    return {
+      variableCostEur: 0,
+      fixedCostEur: Number(fixedCostEur.toFixed(2)),
+      totalCostEur: Number(fixedCostEur.toFixed(2)),
+      coverageRatio: 0,
+      annualConsumptionKwh,
+    };
+  }
+
+  const observed = calculateMonthlyEstimate({
+    annualConsumptionKwh,
+    scenario,
+    rows: coveredRows.map((row) => ({
+      timestamp: new Date(Date.UTC(2026, 0, 1, 0, row.index * 15)).toISOString(),
+      spotPriceCtKwh: row.spotPriceCtKwh,
+    })),
+    profileShares: coveredRows.map((row) => row.share * annualConsumptionKwh),
+  });
+
+  const coverageRatio = coveredShare / totalMonthShare;
+  const variableCostEur = observed.variableCostEur * (totalMonthShare / coveredShare);
+  const fixedCostEur = observed.fixedCostEur;
+
+  return {
+    variableCostEur: Number(variableCostEur.toFixed(2)),
+    fixedCostEur: Number(fixedCostEur.toFixed(2)),
+    totalCostEur: Number((variableCostEur + fixedCostEur).toFixed(2)),
+    coverageRatio: Number(coverageRatio.toFixed(6)),
+    annualConsumptionKwh,
+  };
+}
+
+export function buildScenarioSummaries({
+  annualConsumptionKwh,
+  currentSpotCtKwh,
+  currentTimestamp,
+  profileShares,
+  spotSeriesCtKwh,
+}: {
+  annualConsumptionKwh: number;
+  currentSpotCtKwh: number | null;
+  currentTimestamp: string;
+  profileShares: number[];
+  spotSeriesCtKwh: Array<number | null>;
+}): ScenarioSummary[] {
+  return scenarioPresets.map((scenario) => {
+    const currentRealPriceCtKwh =
+      currentSpotCtKwh === null
+        ? null
+        : calculateScenarioQuarterHourPrice({
+            scenario,
+            spotCtKwh: currentSpotCtKwh,
+            timestamp: currentTimestamp,
+          }).realPriceCtKwh;
+
+    const monthlyEstimate = calculateProjectedMonthlyEstimate({
+      annualConsumptionKwh,
+      scenario,
+      spotSeriesCtKwh,
+      profileShares,
+    });
+
+    return {
+      id: scenario.id,
+      label: scenario.label,
+      description: scenario.description,
+      currentRealPriceCtKwh,
+      fixedMonthlyCostEur: monthlyEstimate.fixedCostEur,
+      variableMonthlyCostEur: monthlyEstimate.variableCostEur,
+      projectedMonthlyCostEur: monthlyEstimate.totalCostEur,
+      coverageRatio: monthlyEstimate.coverageRatio,
+      controllableSharePercent: scenario.controllableSharePercent,
+      meteringLabel: getMeteringLabel(scenario),
+      networkMode: scenario.networkMode,
+    };
+  });
+}
+
+function getMeteringLabel(scenario: PricingScenario) {
+  if (scenario.id === "smart_meter_imsys" || scenario.id === "module3_blended") {
+    return "iMSys";
+  }
+
+  if (scenario.id === "module2_blended") {
+    return "mME + Zusatzzaehler";
+  }
+
+  return "mME";
+}

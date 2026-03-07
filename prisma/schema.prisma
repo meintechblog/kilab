@@ -1,0 +1,52 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model MarketPriceSeries {
+  id          String             @id @default(cuid())
+  key         String             @unique
+  label       String
+  source      String
+  unit        String
+  points      MarketPricePoint[]
+  createdAt   DateTime           @default(now()) @map("created_at")
+  updatedAt   DateTime           @updatedAt @map("updated_at")
+
+  @@map("market_price_series")
+}
+
+model MarketPricePoint {
+  id              String            @id @default(cuid())
+  seriesId        String            @map("series_id")
+  series          MarketPriceSeries @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  startAt         DateTime          @map("start_at")
+  endAt           DateTime          @map("end_at")
+  priceEurMwh     Decimal           @db.Decimal(10, 3) @map("price_eur_mwh")
+  priceCtKwh      Decimal           @db.Decimal(10, 4) @map("price_ct_kwh")
+  sourceTimestamp DateTime?         @map("source_timestamp")
+  fetchedAt       DateTime          @default(now()) @map("fetched_at")
+
+  @@unique([seriesId, startAt])
+  @@index([startAt])
+  @@map("market_price_points")
+}
+
+model SyncRun {
+  id           String   @id @default(cuid())
+  jobName      String   @map("job_name")
+  status       String
+  startedAt    DateTime @default(now()) @map("started_at")
+  finishedAt   DateTime? @map("finished_at")
+  rowsInserted Int      @default(0) @map("rows_inserted")
+  rowsUpdated  Int      @default(0) @map("rows_updated")
+  detailsJson  String?  @map("details_json")
+  errorMessage String?  @map("error_message")
+
+  @@index([jobName, startedAt])
+  @@map("sync_runs")
+}

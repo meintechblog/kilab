@@ -1,36 +1,48 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# kilab-webapp
 
-## Getting Started
+Lokales Dashboard fuer deutsche Viertelstunden-Strompreise mit Day-Ahead-Fokus, Intraday-Zusatzserie, Postgres-Speicher, 14 Tage Backfill und Realpreis-Hochrechnung fuer Schwäbisch Hall.
 
-First, run the development server:
+## Befehle
+
+### Installieren
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
+pnpm db:push
+pnpm backfill:prices
+pnpm cron:install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Dev starten
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+HOST=0.0.0.0 PORT=3000 pnpm dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Build
 
-## Learn More
+```bash
+pnpm build
+```
 
-To learn more about Next.js, take a look at the following resources:
+### Production Start
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+pnpm start -- --hostname 0.0.0.0 --port 3000
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Hilfreich
 
-## Deploy on Vercel
+```bash
+pnpm test
+pnpm lint
+pnpm sync:prices -- --mode=day-ahead
+pnpm sync:prices -- --mode=intraday
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Datenstand
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Spotquellen: Energy-Charts Day-Ahead und Intraday
+- Realpreis: Day-Ahead plus Tibber-artige Beschaffungskosten, lokale Netzentgelte und Abgaben fuer Schwaebisch Hall
+- Lastprofil: BDEW H0, 3-Personen-Haus, 3.500 kWh/Jahr
+- Scheduler: 10:47, 12:58, 13:03, 13:10, 15:47, 22:47 (Europe/Berlin)
