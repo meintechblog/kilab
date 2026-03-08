@@ -21,10 +21,10 @@ type ScenarioOption = {
 };
 
 const scenarioColors: Record<ScenarioId, string> = {
-  standard_mme: "#b45309",
-  smart_meter_imsys: "#7c3aed",
-  module2_blended: "#0f766e",
-  module3_blended: "#be123c",
+  standard_mme: "#fb923c",
+  smart_meter_imsys: "#c084fc",
+  module2_blended: "#34d399",
+  module3_blended: "#fb7185",
 };
 
 export function PriceChart({
@@ -49,24 +49,24 @@ export function PriceChart({
   const chartData = rows.map((row) => ({ ...row, fixedPriceCtKwh }));
 
   return (
-    <div className="rounded-[2rem] border border-white/70 bg-white/90 p-6 shadow-[0_24px_80px_rgba(14,35,21,0.08)] backdrop-blur">
+    <div className="graphite-panel rounded-[2rem] p-6">
       <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-emerald-800/70">Chart</p>
-          <h2 className="mt-2 text-2xl font-semibold text-zinc-950">7 Tage Rueckblick plus verfuegbare Zukunft</h2>
-          <p className="mt-3 max-w-3xl text-sm leading-6 text-zinc-600">
-            Gruen zeigt den Boersenpreis, Bernstein den aktiven Realpreis. Die gestrichelte rote Linie markiert deinen aktuellen Fixpreis als Referenz.
+          <p className="font-mono text-xs uppercase tracking-[0.3em] text-orange-200/76">Chart</p>
+          <h2 className="mt-3 text-2xl font-semibold text-white md:text-3xl">7 Tage Rueckblick plus verfuegbare Zukunft</h2>
+          <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-400">
+            Boersenpreise, aktiver Realpreis und dein Fixpreis liegen auf einer gemeinsamen Lesespur, damit Unterschiede sofort sichtbar werden.
           </p>
         </div>
-        <div className="rounded-[1.25rem] border border-zinc-200/80 bg-zinc-50/90 px-4 py-3 text-sm text-zinc-600">
-          <p>Aktiv: <span className="font-semibold text-zinc-950">{selectedScenario?.label ?? selectedScenarioId}</span></p>
+        <div className="graphite-pill rounded-[1.3rem] px-4 py-3 text-sm text-slate-300">
+          <p>Aktiv: <span className="font-semibold text-white">{selectedScenario?.label ?? selectedScenarioId}</span></p>
           <p className="mt-1">Verfuegbar bis {availableUntil ? formatInTimeZone(availableUntil, "Europe/Berlin", "dd.MM.yyyy HH:mm") : "-"}</p>
         </div>
       </div>
       <div className="h-[460px] w-full">
         <ResponsiveContainer minHeight={340}>
           <LineChart data={chartData} margin={{ top: 10, right: 24, bottom: 10, left: 0 }}>
-            <CartesianGrid stroke="rgba(15,59,45,0.08)" strokeDasharray="3 6" />
+            <CartesianGrid stroke="rgba(148,163,184,0.12)" strokeDasharray="3 8" />
             <XAxis
               dataKey="timestamp"
               minTickGap={40}
@@ -78,21 +78,33 @@ export function PriceChart({
                   minute: "2-digit",
                 }).format(new Date(value))
               }
-              stroke="rgba(39,39,42,0.6)"
+              stroke="rgba(203,213,225,0.68)"
+              tick={{ fill: "rgba(226,232,240,0.82)", fontSize: 12 }}
             />
-            <YAxis unit=" ct/kWh" stroke="rgba(39,39,42,0.6)" />
+            <YAxis
+              unit=" ct/kWh"
+              stroke="rgba(203,213,225,0.68)"
+              tick={{ fill: "rgba(226,232,240,0.82)", fontSize: 12 }}
+            />
             <Tooltip
+              contentStyle={{
+                background: "rgba(8,15,26,0.96)",
+                border: "1px solid rgba(148,163,184,0.2)",
+                borderRadius: 18,
+                color: "#f8fafc",
+                boxShadow: "0 24px 80px rgba(2,8,20,0.42)",
+              }}
               formatter={(value: number | string | readonly (string | number)[] | null | undefined) =>
                 typeof value === "number" ? `${value.toFixed(2)} ct/kWh` : "-"}
               labelFormatter={(label: unknown) =>
                 typeof label === "string" ? formatInTimeZone(label, "Europe/Berlin", "dd.MM.yyyy HH:mm") : "-"}
             />
-            <Legend />
+            <Legend wrapperStyle={{ color: "#e2e8f0", paddingTop: 12 }} />
             <Line
               type="monotone"
               dataKey="dayAheadCtKwh"
               name="Day-Ahead"
-              stroke="#166534"
+              stroke="#22c55e"
               strokeWidth={3}
               dot={false}
               connectNulls
@@ -101,7 +113,7 @@ export function PriceChart({
               type="monotone"
               dataKey="intradayCtKwh"
               name="Intraday"
-              stroke="#0f766e"
+              stroke="#38bdf8"
               strokeDasharray="6 6"
               strokeWidth={2}
               dot={false}
@@ -111,8 +123,8 @@ export function PriceChart({
               type="monotone"
               dataKey="fixedPriceCtKwh"
               name={fixedPriceLabel}
-              stroke="#dc2626"
-              strokeDasharray="8 6"
+              stroke="#fb7185"
+              strokeDasharray="10 8"
               strokeWidth={2}
               dot={false}
             />
@@ -134,7 +146,7 @@ export function PriceChart({
                   dataKey={`realPriceByScenario.${scenarioId}`}
                   name={`Vergleich ${scenario?.label ?? scenarioId}`}
                   stroke={scenarioColors[scenarioId]}
-                  strokeDasharray="4 6"
+                  strokeDasharray="4 7"
                   strokeWidth={2}
                   dot={false}
                   connectNulls

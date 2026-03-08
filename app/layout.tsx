@@ -1,27 +1,28 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Mono, Space_Grotesk } from "next/font/google";
+import { Fira_Code, Fira_Sans } from "next/font/google";
 import "./globals.css";
 
-const spaceGrotesk = Space_Grotesk({
-  variable: "--font-display",
+const firaSans = Fira_Sans({
+  variable: "--font-body",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
-const ibmPlexMono = IBM_Plex_Mono({
+const firaCode = Fira_Code({
   variable: "--font-mono",
   subsets: ["latin"],
-  weight: ["400", "500"],
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
   title: "kilab Strompreis Dashboard",
-  description: "Day-Ahead- und Intraday-Viertelstundenpreise fuer Deutschland auf einem lokalen Dashboard.",
+  description: "Day-Ahead- und Intraday-Viertelstundenpreise fuer Deutschland mit Realpreis- und Fixpreisvergleich.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="de">
-      <body className={`${spaceGrotesk.variable} ${ibmPlexMono.variable} bg-white text-zinc-950 antialiased`}>
+      <body className={`${firaSans.variable} ${firaCode.variable} bg-[#07111f] text-slate-50 antialiased`}>
         {children}
       </body>
     </html>
