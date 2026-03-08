@@ -1,0 +1,18 @@
+[Unit]
+Description=kilab webapp
+After=network.target postgresql.service
+Wants=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/root/projects/kilab-webapp
+Environment=NODE_ENV=production
+Environment=PORT=3000
+Environment=HOSTNAME=0.0.0.0
+ExecStart=/usr/bin/env pnpm exec next start --hostname 0.0.0.0 --port 3000
+Restart=always
+RestartSec=5
+User=root
+
+[Install]
+WantedBy=multi-user.target
