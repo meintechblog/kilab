@@ -46,7 +46,7 @@ pnpm sync:prices -- --mode=intraday
 - Realpreis: Day-Ahead plus Tibber-artige Beschaffungskosten, lokale Netzentgelte und Abgaben fuer Schwaebisch Hall
 - Lastprofil: BDEW H0, 3-Personen-Haus, 3.500 kWh/Jahr
 - Fixpreis-Referenz: 25 ct/kWh Arbeitspreis plus angenommene 12 EUR Grundpreis pro Monat
-- UI: dunkles technisches Dashboard, Szenario-Karten, Preiszusammensetzung jetzt, Monatsrechnung erklaert
+- UI: dunkles technisches Dashboard mit Entscheidungsleiste, Chart-Filtern, Szenario-Karten, Preiszusammensetzung jetzt, Monatsrechnung erklaert und besten Zeitfenstern
 - Scheduler: 10:47, 12:58, 13:03, 13:10, 15:47, 22:47 (Europe/Berlin)
 
 ## Betrieb

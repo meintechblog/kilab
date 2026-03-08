@@ -35,6 +35,7 @@ export function PriceChart({
   availableUntil,
   fixedPriceCtKwh,
   fixedPriceLabel,
+  visibleSeries,
 }: {
   rows: DashboardChartRow[];
   scenarioOptions: ScenarioOption[];
@@ -43,9 +44,17 @@ export function PriceChart({
   availableUntil: string | null;
   fixedPriceCtKwh: number;
   fixedPriceLabel: string;
+  visibleSeries: {
+    dayAhead: boolean;
+    intraday: boolean;
+    fixedPrice: boolean;
+    compare: boolean;
+  };
 }) {
   const selectedScenario = scenarioOptions.find((scenario) => scenario.id === selectedScenarioId);
-  const visibleCompareIds = compareScenarioIds.filter((scenarioId) => scenarioId !== selectedScenarioId);
+  const visibleCompareIds = visibleSeries.compare
+    ? compareScenarioIds.filter((scenarioId) => scenarioId !== selectedScenarioId)
+    : [];
   const chartData = rows.map((row) => ({ ...row, fixedPriceCtKwh }));
 
   return (
@@ -55,7 +64,7 @@ export function PriceChart({
           <p className="font-mono text-xs uppercase tracking-[0.3em] text-orange-200/76">Chart</p>
           <h2 className="mt-3 text-2xl font-semibold text-white md:text-3xl">7 Tage Rueckblick plus verfuegbare Zukunft</h2>
           <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-400">
-            Boersenpreise, aktiver Realpreis und dein Fixpreis liegen auf einer gemeinsamen Lesespur, damit Unterschiede sofort sichtbar werden.
+            Das Diagramm zeigt immer den aktiven Realpreis. Weitere Linien lassen sich fuer schnelle Preisvergleiche gezielt ein- oder ausblenden.
           </p>
         </div>
         <div className="graphite-pill rounded-[1.3rem] px-4 py-3 text-sm text-slate-300">
@@ -100,34 +109,40 @@ export function PriceChart({
                 typeof label === "string" ? formatInTimeZone(label, "Europe/Berlin", "dd.MM.yyyy HH:mm") : "-"}
             />
             <Legend wrapperStyle={{ color: "#e2e8f0", paddingTop: 12 }} />
-            <Line
-              type="monotone"
-              dataKey="dayAheadCtKwh"
-              name="Day-Ahead"
-              stroke="#22c55e"
-              strokeWidth={3}
-              dot={false}
-              connectNulls
-            />
-            <Line
-              type="monotone"
-              dataKey="intradayCtKwh"
-              name="Intraday"
-              stroke="#38bdf8"
-              strokeDasharray="6 6"
-              strokeWidth={2}
-              dot={false}
-              connectNulls
-            />
-            <Line
-              type="monotone"
-              dataKey="fixedPriceCtKwh"
-              name={fixedPriceLabel}
-              stroke="#fb7185"
-              strokeDasharray="10 8"
-              strokeWidth={2}
-              dot={false}
-            />
+            {visibleSeries.dayAhead ? (
+              <Line
+                type="monotone"
+                dataKey="dayAheadCtKwh"
+                name="Day-Ahead"
+                stroke="#22c55e"
+                strokeWidth={3}
+                dot={false}
+                connectNulls
+              />
+            ) : null}
+            {visibleSeries.intraday ? (
+              <Line
+                type="monotone"
+                dataKey="intradayCtKwh"
+                name="Intraday"
+                stroke="#38bdf8"
+                strokeDasharray="6 6"
+                strokeWidth={2}
+                dot={false}
+                connectNulls
+              />
+            ) : null}
+            {visibleSeries.fixedPrice ? (
+              <Line
+                type="monotone"
+                dataKey="fixedPriceCtKwh"
+                name={fixedPriceLabel}
+                stroke="#fb7185"
+                strokeDasharray="10 8"
+                strokeWidth={2}
+                dot={false}
+              />
+            ) : null}
             <Line
               type="monotone"
               dataKey={`realPriceByScenario.${selectedScenarioId}`}

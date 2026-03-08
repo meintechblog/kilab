@@ -8,7 +8,52 @@ vi.mock("./price-chart", () => ({
 
 const dashboard = {
   generatedAt: "2026-03-08T12:00:00.000Z",
-  chartRows: [],
+  chartRows: [
+    {
+      timestamp: "2026-03-08T12:00:00.000Z",
+      dayAheadCtKwh: 12.5,
+      intradayCtKwh: 13.1,
+      realPriceByScenario: {
+        standard_mme: 29.4,
+        smart_meter_imsys: 29.8,
+        module2_blended: 28.9,
+        module3_blended: 28.1,
+      },
+    },
+    {
+      timestamp: "2026-03-08T12:15:00.000Z",
+      dayAheadCtKwh: 10.2,
+      intradayCtKwh: 10.9,
+      realPriceByScenario: {
+        standard_mme: 27.1,
+        smart_meter_imsys: 27.6,
+        module2_blended: 26.7,
+        module3_blended: 25.9,
+      },
+    },
+    {
+      timestamp: "2026-03-08T12:30:00.000Z",
+      dayAheadCtKwh: 8.7,
+      intradayCtKwh: 9.2,
+      realPriceByScenario: {
+        standard_mme: 25.6,
+        smart_meter_imsys: 26.1,
+        module2_blended: 25.1,
+        module3_blended: 24.3,
+      },
+    },
+    {
+      timestamp: "2026-03-08T12:45:00.000Z",
+      dayAheadCtKwh: 9.4,
+      intradayCtKwh: 9.8,
+      realPriceByScenario: {
+        standard_mme: 26.3,
+        smart_meter_imsys: 26.8,
+        module2_blended: 25.8,
+        module3_blended: 25,
+      },
+    },
+  ],
   currentDayAhead: { startAt: "2026-03-08T12:00:00.000Z", endAt: "2026-03-08T12:15:00.000Z", priceCtKwh: 12.5 },
   currentIntraday: { startAt: "2026-03-08T12:00:00.000Z", endAt: "2026-03-08T12:15:00.000Z", priceCtKwh: 13.1 },
   lastSync: { finished_at: "2026-03-08T11:58:00.000Z", rows_inserted: 10, rows_updated: 4 },
@@ -66,19 +111,22 @@ const dashboard = {
 } as const;
 
 describe("PriceDashboard", () => {
-  it("renders the pricing breakdown and fixed-price comparison panels", () => {
+  it("renders the pricing breakdown, decision layer, and fixed-price comparison panels", () => {
     const html = renderToStaticMarkup(<PriceDashboard dashboard={dashboard} />);
 
+    expect(html).toContain("Jetzt entscheiden");
+    expect(html).toContain("Beste Zeitfenster");
     expect(html).toContain("Preiszusammensetzung jetzt");
     expect(html).toContain("Monatsrechnung erklaert");
     expect(html).toContain("Fixpreis 25 ct/kWh");
   });
 
-  it("uses the new stronger visual framing copy", () => {
+  it("renders chart controls and scenario delta framing", () => {
     const html = renderToStaticMarkup(<PriceDashboard dashboard={dashboard} />);
 
+    expect(html).toContain("Sichtbar im Chart");
+    expect(html).toContain("Monat vs. Fix");
     expect(html).toContain("Flexpreis gegen Fixpreis");
-    expect(html).toContain("Karten unten steuern jetzt direkt das aktive Szenario");
     expect(html).toContain("Dein aktueller Vertrag");
     expect(html).toContain("graphite-shell");
   });

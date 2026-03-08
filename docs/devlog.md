@@ -7,3 +7,4 @@
 - Updated fixed-price comparison to include an assumed 12 EUR monthly base charge from the current contract.
 - Replaced the ephemeral app process with a persistent systemd service after the March 8, 2026 outage.
 - Applied a dark technical dashboard refresh using the ui-ux-pro-max design direction.
+- Added a decision-focused advisory layer with flex-vs-fix guidance, best upcoming windows, scenario deltas, and chart visibility controls.
