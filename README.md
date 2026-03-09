@@ -139,6 +139,12 @@ For source and modelling detail, see [docs/data-sources.md](/root/projects/kilab
 
 Operational detail lives in [docs/operations.md](/root/projects/kilab-webapp/docs/operations.md).
 
+## Repository Meta
+
+- [LICENSE](/root/projects/kilab-webapp/LICENSE)
+- [CONTRIBUTING.md](/root/projects/kilab-webapp/CONTRIBUTING.md)
+- [CHANGELOG.md](/root/projects/kilab-webapp/CHANGELOG.md)
+
 ## Repository Tour
 
 - [`app/`](/root/projects/kilab-webapp/app) Next.js app shell and routes.
