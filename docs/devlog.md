@@ -9,3 +9,4 @@
 - Applied a dark technical dashboard refresh using the ui-ux-pro-max design direction.
 - Added a decision-focused advisory layer with flex-vs-fix guidance, best upcoming windows, scenario deltas, and chart visibility controls.
 - Rebuilt the GitHub-facing documentation into a product-style landing page with curated architecture, sources, and operations docs.
+- Added README showcase polish with a real dashboard screenshot, architecture diagram, and roadmap.

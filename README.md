@@ -6,6 +6,16 @@ Built and operated on the `kilab` Proxmox LXC, backed by Postgres, and shaped li
 
 [Live vibe-coding session](https://meintechblog.de/2026/03/07/live-vibe-coding-mit-openclaw-und-codex/)
 
+![Dashboard overview](docs/assets/dashboard-overview.png)
+
+## Highlights
+
+- Real quarter-hour electricity market data for Germany.
+- Local real-price modelling for Schwaebisch Hall.
+- Fixed tariff comparison with monthly projection.
+- Decision layer with `Flex vs. Fix`, next cheap slots, and best practical hour block.
+- Running as a real local service on `kilab`, not just as a code sample.
+
 ## Why This Repo Exists
 
 Spot prices are interesting. Real household decisions are more interesting.
@@ -25,14 +35,6 @@ This project started as a local web app that shows German quarter-hour electrici
 - Decision-focused dashboard with `Flex vs. Fix`, best upcoming windows, scenario deltas, and chart visibility controls.
 - Persistent app runtime via `systemd` on the `kilab` container.
 
-## What The App Does
-
-The app combines several layers into one dashboard:
-- Raw market view: day-ahead and intraday price curves.
-- End-customer view: local surcharges, taxes, fees, and meter scenarios.
-- Billing view: monthly projection based on a `BDEW H0` profile for a `3-person house`.
-- Decision view: current spread to fixed tariff, cheapest next slots, and best practical hour block.
-
 ## Built Live
 
 This repository is part of a public live coding story. The linked article shows the tooling context around the repo and how the project was built iteratively:
@@ -41,7 +43,31 @@ This repository is part of a public live coding story. The linked article shows 
 
 That context matters here: this repo is not just a static code dump. It is a working project built in public, refined step by step, and kept operational on a real container.
 
-## How It Works
+## What The App Does
+
+The app combines several layers into one dashboard:
+- Raw market view: day-ahead and intraday price curves.
+- End-customer view: local surcharges, taxes, fees, and meter scenarios.
+- Billing view: monthly projection based on a `BDEW H0` profile for a `3-person house`.
+- Decision view: current spread to fixed tariff, cheapest next slots, and best practical hour block.
+
+## Architecture At A Glance
+
+```mermaid
+flowchart LR
+    A[Energy-Charts]
+    B[Sync Scripts]
+    C[Postgres]
+    D[Pricing Logic]
+    E[Next.js Dashboard]
+    F[systemd on kilab]
+
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+    E --> F
+```
 
 High-level flow:
 - `Energy-Charts` provides the market price source data.
@@ -79,7 +105,7 @@ pnpm build
 ### Production Start
 
 ```bash
-pnpm start -- --hostname 0.0.0.0 --port 3000
+pnpm exec next start --hostname 0.0.0.0 --port 3000
 ```
 
 ### Helpful Commands
@@ -121,7 +147,7 @@ Operational detail lives in [docs/operations.md](/root/projects/kilab-webapp/doc
 - [`src/lib/pricing/`](/root/projects/kilab-webapp/src/lib/pricing) real-price engine, scenarios, monthly projections, and advisory logic.
 - [`scripts/`](/root/projects/kilab-webapp/scripts) fetch and sync scripts used for backfill and recurring updates.
 - [`ops/systemd/`](/root/projects/kilab-webapp/ops/systemd) service definition for the persistent runtime.
-- [`docs/`](/root/projects/kilab-webapp/docs) architecture, sources, operations, and project notes.
+- [`docs/`](/root/projects/kilab-webapp/docs) architecture, sources, operations, assets, and project notes.
 
 ## Documentation Map
 
@@ -130,6 +156,13 @@ Operational detail lives in [docs/operations.md](/root/projects/kilab-webapp/doc
 - [docs/data-sources.md](/root/projects/kilab-webapp/docs/data-sources.md)
 - [docs/operations.md](/root/projects/kilab-webapp/docs/operations.md)
 - [docs/devlog.md](/root/projects/kilab-webapp/docs/devlog.md)
+
+## Roadmap
+
+- Add appliance-specific decision presets like `wallbox`, `washing machine`, and `heat pump`.
+- Add alerting when flexible pricing drops below fixed tariff by a chosen threshold.
+- Add more local assumptions and tariff variants as the pricing model grows.
+- Add richer historical analysis for weekly and monthly household decisions.
 
 ## Status
 

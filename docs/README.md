@@ -1,6 +1,6 @@
 # Documentation
 
-This folder holds the deeper project documentation behind the main GitHub landing page.
+This folder holds the deeper documentation behind the main GitHub landing page. The visual entry point is the root [README.md](/root/projects/kilab-webapp/README.md), including the live dashboard screenshot and repo overview.
 
 ## Read This Next
 

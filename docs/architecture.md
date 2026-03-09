@@ -12,6 +12,24 @@ The architecture is intentionally compact:
 
 ## System Shape
 
+```mermaid
+flowchart LR
+    A[Energy-Charts]
+    B[Sync Scripts]
+    C[Postgres]
+    D[Query Layer]
+    E[Pricing Engine]
+    F[Next.js Dashboard]
+    G[systemd Service]
+
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+    E --> F
+    F --> G
+```
+
 Main building blocks:
 - `Next.js App Router`
   - page shell and dashboard rendering
